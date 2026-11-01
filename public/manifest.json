@@ -1,0 +1,30 @@
+{
+  "short_name": "Tns รุ่น06",
+  "name": "ระบบเงินเก็บTns รุ่น06",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#4c1d60",
+  "theme_color": "#4c1d60",
+  "display": "standalone"
+}

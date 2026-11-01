@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Path for Top Arc Text (Thai) -->
+    <path id="topArc" d="M 68,256 A 188,188 0 0,1 444,256" />
+    <!-- Path for Bottom Arc Text (English) -->
+    <path id="bottomArc" d="M 92,256 A 164,164 0 0,0 420,256" />
+    
+    <!-- Yellow Ribbon Gradient -->
+    <linearGradient id="yellowRibbon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8b018" />
+      <stop offset="100%" stop-color="#ea930d" />
+    </linearGradient>
+
+    <!-- Dish Fill Gradient -->
+    <linearGradient id="dishGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffbe2e" />
+      <stop offset="100%" stop-color="#e68a00" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base Circle - Rich Deep Purple -->
+  <circle cx="256" cy="256" r="252" fill="#4d1b5a" />
+
+  <!-- TOP THAI TEXT -->
+  <text fill="#FFFFFF" font-family="'Noto Sans Thai', 'Sukhumvit Set', sans-serif" font-weight="700" font-size="28.5" letter-spacing="1">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">ระบบโทรคมนาคมและเครือข่าย</textPath>
+  </text>
+
+  <!-- BOTTOM YELLOW RIBBON -->
+  <path d="M 44,256 A 212,212 0 0,0 468,256 L 420,256 A 164,164 0 0,1 92,256 Z" fill="url(#yellowRibbon)" />
+
+  <!-- BOTTOM ENGLISH TEXT -->
+  <text fill="#0f172a" font-family="'Space Grotesk', 'Arial Black', sans-serif" font-weight="900" font-size="16.5" letter-spacing="0.8">
+    <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">TELECOMMUNICATION AND NETWORK SYSTEMS</textPath>
+  </text>
+
+  <!-- CENTER GRAPHICS -->
+  <g id="centerGraphics">
+    <!-- Radio Waves Emitting from Antenna Tip -->
+    <g stroke="#a1a8ba" stroke-width="6.5" fill="none" stroke-linecap="round" opacity="0.9">
+      <!-- Left Waves -->
+      <path d="M 226,192 A 38,38 0 0,0 196,138" />
+      <path d="M 210,204 A 60,60 0 0,0 168,118" />
+      <path d="M 194,216 A 82,82 0 0,0 140,98" />
+      <!-- Right Waves -->
+      <path d="M 286,192 A 38,38 0 0,1 316,138" />
+      <path d="M 302,204 A 60,60 0 0,1 344,118" />
+      <path d="M 318,216 A 82,82 0 0,1 372,98" />
+    </g>
+
+    <!-- LEFT SATELLITE DISH -->
+    <g transform="translate(126, 202) rotate(-28)">
+      <!-- Dish Mount -->
+      <path d="M -12,38 L 0,8 L 12,38" stroke="#f8b018" stroke-width="5" fill="none" />
+      <!-- Main Dish Bowl -->
+      <path d="M -48,-18 A 54,54 0 0,0 48,-18 C 36,12 -36,12 -48,-18 Z" fill="url(#dishGrad)" stroke="#ffffff" stroke-width="3" />
+      <!-- Horn & Subreflector -->
+      <line x1="0" y1="0" x2="0" y2="-38" stroke="#ffffff" stroke-width="4" />
+      <circle cx="0" cy="-38" r="5" fill="#f8b018" stroke="#ffffff" stroke-width="2" />
+    </g>
+
+    <!-- RIGHT SATELLITE DISH -->
+    <g transform="translate(386, 202) rotate(28)">
+      <!-- Dish Mount -->
+      <path d="M -12,38 L 0,8 L 12,38" stroke="#f8b018" stroke-width="5" fill="none" />
+      <!-- Main Dish Bowl -->
+      <path d="M -48,-18 A 54,54 0 0,0 48,-18 C 36,12 -36,12 -48,-18 Z" fill="url(#dishGrad)" stroke="#ffffff" stroke-width="3" />
+      <!-- Horn & Subreflector -->
+      <line x1="0" y1="0" x2="0" y2="-38" stroke="#ffffff" stroke-width="4" />
+      <circle cx="0" cy="-38" r="5" fill="#f8b018" stroke="#ffffff" stroke-width="2" />
+    </g>
+
+    <!-- GEAR / COGWHEEL (Behind bottom of tower) -->
+    <g transform="translate(256, 310)">
+      <!-- Gear Teeth Ring -->
+      <path d="
+        M -22,-92 L 22,-92 L 28,-70 L -28,-70 Z
+        M -22,92 L 22,92 L 28,70 L -28,70 Z
+        M -92,-22 L -92,22 L -70,28 L -70,-28 Z
+        M 92,-22 L 92,22 L 70,28 L 70,-28 Z
+        M -64,-64 L -34,-82 L -22,-62 L -52,-44 Z
+        M 64,64 L 34,82 L 22,62 L 52,44 Z
+        M 64,-64 L 82,-34 L 62,-22 L 44,-52 Z
+        M -64,64 L -82,34 L -62,22 L -44,52 Z
+      " fill="#f8b018" />
+      <!-- Outer Circle -->
+      <circle cx="0" cy="0" r="78" fill="#f8b018" />
+      <!-- Inner Dark Center Circle -->
+      <circle cx="0" cy="0" r="46" fill="#4d1b5a" />
+    </g>
+
+    <!-- TOWER / ANTENNA (White Lattice) -->
+    <g transform="translate(256, 142)">
+      <!-- Top Center Spike -->
+      <line x1="0" y1="-22" x2="0" y2="175" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+      <circle cx="0" cy="-22" r="8" fill="#ffffff" />
+
+      <!-- Main Legs (A-frame) -->
+      <path d="M 0,0 L -62,175 L 62,175 Z" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" />
+
+      <!-- Cross Braces -->
+      <g stroke="#ffffff" stroke-width="3.5" stroke-linecap="round">
+        <line x1="-14" y1="38" x2="14" y2="38" />
+        <line x1="-26" y1="74" x2="26" y2="74" />
+        <line x1="-40" y1="114" x2="40" y2="114" />
+        <line x1="-54" y1="154" x2="54" y2="154" />
+
+        <line x1="0" y1="0" x2="26" y2="74" />
+        <line x1="0" y1="0" x2="-26" y2="74" />
+        <line x1="-26" y1="74" x2="40" y2="114" />
+        <line x1="26" y1="74" x2="-40" y2="114" />
+        <line x1="-40" y1="114" x2="54" y2="154" />
+        <line x1="40" y1="114" x2="-54" y2="154" />
+      </g>
+    </g>
+
+    <!-- RED BANNER AT BOTTOM OF GEAR -->
+    <g transform="translate(256, 324)">
+      <!-- Dark Red Curved Box -->
+      <path d="M -115,-20 L 115,-20 C 115,22 90,38 0,38 C -90,38 -115,22 -115,-20 Z" fill="#bb1523" />
+      
+      <!-- TNS Text -->
+      <text x="0" y="14" text-anchor="middle" font-family="'Space Grotesk', 'Impact', 'Arial Black', sans-serif" font-weight="900" font-size="42" letter-spacing="2">
+        <tspan fill="#0c192c">TN</tspan>
+        <tspan fill="#f8b018">S</tspan>
+      </text>
+    </g>
+  </g>
+</svg>
