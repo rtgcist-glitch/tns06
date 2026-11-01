@@ -451,7 +451,7 @@ async function downloadFile(fileId, customToken) {
 }
 
 // server/utils/thaiMonths.ts
-function getMonthThaiName(m) {
+function getMonthThaiName2(m) {
   const months = ["", "\u0E21\u0E01\u0E23\u0E32\u0E04\u0E21", "\u0E01\u0E38\u0E21\u0E20\u0E32\u0E1E\u0E31\u0E19\u0E18\u0E4C", "\u0E21\u0E35\u0E19\u0E32\u0E04\u0E21", "\u0E40\u0E21\u0E29\u0E32\u0E22\u0E19", "\u0E1E\u0E24\u0E29\u0E20\u0E32\u0E04\u0E21", "\u0E21\u0E34\u0E16\u0E38\u0E19\u0E32\u0E22\u0E19", "\u0E01\u0E23\u0E01\u0E0E\u0E32\u0E04\u0E21", "\u0E2A\u0E34\u0E07\u0E2B\u0E32\u0E04\u0E21", "\u0E01\u0E31\u0E19\u0E22\u0E32\u0E22\u0E19", "\u0E15\u0E38\u0E25\u0E32\u0E04\u0E21", "\u0E1E\u0E24\u0E28\u0E08\u0E34\u0E01\u0E32\u0E22\u0E19", "\u0E18\u0E31\u0E19\u0E27\u0E32\u0E04\u0E21"];
   return months[m] || String(m);
 }
@@ -1186,7 +1186,7 @@ router2.post("/system/generate-summary", asyncHandler(async (req, res) => {
 
 `;
   summaryText += `\u{1F514} [\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E01\u0E32\u0E23\u0E08\u0E48\u0E32\u0E22\u0E40\u0E07\u0E34\u0E19\u0E04\u0E48\u0E32\u0E1A\u0E33\u0E23\u0E38\u0E07\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19]
-\u0E23\u0E2D\u0E1A\u0E1A\u0E34\u0E25\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14: \u0E40\u0E14\u0E37\u0E2D\u0E19${getMonthThaiName(latestCycle.month)} ${latestCycle.year}
+\u0E23\u0E2D\u0E1A\u0E1A\u0E34\u0E25\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14: \u0E40\u0E14\u0E37\u0E2D\u0E19${getMonthThaiName2(latestCycle.month)} ${latestCycle.year}
 
 `;
   summaryText += `\u2705 \u0E0A\u0E33\u0E23\u0E30\u0E40\u0E07\u0E34\u0E19\u0E41\u0E25\u0E49\u0E27 (${paidMembers.length} \u0E04\u0E19):
@@ -2568,34 +2568,127 @@ router8.post("/gemini/chat", asyncHandler(async (req, res) => {
   const currentFundBalance = state.transactions.reduce((sum, tx) => sum + (tx.type === "income" ? tx.amount : -tx.amount), 0) - 3802;
   const totalIncome = state.transactions.filter((tx) => tx.type === "income").reduce((sum, tx) => sum + tx.amount, 0);
   const totalExpense = state.transactions.filter((tx) => tx.type === "expense").reduce((sum, tx) => sum + tx.amount, 0);
-  const currentMonth = getCurrentMonth();
-  const currentYear = getCurrentBuddhistYear();
-  const currentMonthBills = state.monthlyBills.filter((b) => b.month === currentMonth && b.year === currentYear);
-  const paidCount = currentMonthBills.filter((b) => b.status === "paid").length;
-  const pendingReviewCount = currentMonthBills.filter((b) => b.status === "pending_review").length;
-  const unpaidCount = currentMonthBills.filter((b) => b.status === "pending").length;
-  const unpaidStudentsList = currentMonthBills.filter((b) => b.status === "pending").map((b) => {
+  let latestMonth = getCurrentMonth();
+  let latestYear = getCurrentBuddhistYear();
+  if (state.monthlyBills && state.monthlyBills.length > 0) {
+    const sortedBills = [...state.monthlyBills].sort(
+      (a, b) => b.year !== a.year ? b.year - a.year : b.month - a.month
+    );
+    latestMonth = sortedBills[0].month;
+    latestYear = sortedBills[0].year;
+  }
+  const currentMonthBills = state.monthlyBills.filter((b) => b.month === latestMonth && b.year === latestYear);
+  const paidBills = currentMonthBills.filter((b) => b.status === "paid");
+  const pendingReviewBills = currentMonthBills.filter((b) => b.status === "pending_review");
+  const unpaidBills = currentMonthBills.filter((b) => b.status === "pending");
+  const paidCount = paidBills.length;
+  const pendingReviewCount = pendingReviewBills.length;
+  const unpaidCount = unpaidBills.length;
+  const unpaidStudents = unpaidBills.map((b) => {
     const u = state.users.find((usr) => usr.id === b.userId);
-    return u ? `${u.fullName} (\u0E23\u0E2B\u0E31\u0E2A ${u.studentId})` : "";
-  }).filter(Boolean).join(", ");
-  const systemInstruction = `\u0E04\u0E38\u0E13\u0E04\u0E37\u0E2D "\u0E1C\u0E39\u0E49\u0E0A\u0E48\u0E27\u0E22\u0E40\u0E2B\u0E23\u0E31\u0E0D\u0E0D\u0E34\u0E01 AI" \u0E1B\u0E23\u0E30\u0E08\u0E33 "\u0E23\u0E30\u0E1A\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1ATns \u0E23\u0E38\u0E48\u0E1906"
+    return u ? `${u.fullName}${u.nickname ? ` (${u.nickname})` : ""} [${u.classroom || "\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B"}]` : "";
+  }).filter(Boolean);
+  const pendingStudents = pendingReviewBills.map((b) => {
+    const u = state.users.find((usr) => usr.id === b.userId);
+    return u ? `${u.fullName}${u.nickname ? ` (${u.nickname})` : ""}` : "";
+  }).filter(Boolean);
+  const marketWeeks = state.marketWeeks || [];
+  const totalMarketRevenue = marketWeeks.reduce((s, w) => s + (w.totalRevenue || 0), 0);
+  const totalMarketCost = marketWeeks.reduce((s, w) => s + (w.totalCost || 0), 0);
+  const totalMarketProfit = marketWeeks.reduce((s, w) => s + (w.totalProfit || 0), 0);
+  const feeIncome = state.transactions.filter((tx) => tx.category === "monthly_fee").reduce((s, tx) => s + tx.amount, 0);
+  const activityExpense = state.transactions.filter((tx) => tx.category === "activity_expense").reduce((s, tx) => s + tx.amount, 0);
+  const fundName = state.settings?.fundName || "\u0E23\u0E30\u0E1A\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1A Tns \u0E23\u0E38\u0E48\u0E1906";
+  const monthlyFee = state.settings?.monthlyFee || 160;
+  const monthName = getMonthThaiName(latestMonth);
+  const buildSmartLocalReply = (q) => {
+    const text = q.toLowerCase();
+    if (text.includes("\u0E17\u0E27\u0E07") || text.includes("\u0E23\u0E48\u0E32\u0E07\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21") || text.includes("\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19")) {
+      return `\u{1F4E2} **\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19\u0E0A\u0E33\u0E23\u0E30\u0E40\u0E07\u0E34\u0E19\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E41\u0E1A\u0E1A\u0E2A\u0E38\u0E20\u0E32\u0E1E)**
+
+"\u0E2A\u0E27\u0E31\u0E2A\u0E14\u0E35\u0E04\u0E48\u0E30\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E19\u0E46 ${fundName} \u0E17\u0E38\u0E01\u0E04\u0E19 \u{1F338}
+\u0E02\u0E2D\u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15\u0E41\u0E08\u0E49\u0E07\u0E40\u0E15\u0E37\u0E2D\u0E19\u0E04\u0E48\u0E32\u0E1A\u0E33\u0E23\u0E38\u0E07\u0E01\u0E2D\u0E07\u0E17\u0E38\u0E19\u0E1B\u0E23\u0E30\u0E08\u0E33\u0E40\u0E14\u0E37\u0E2D\u0E19**${monthName} ${latestYear}** (\u0E04\u0E19\u0E25\u0E30 **${monthlyFee} \u0E1A\u0E32\u0E17**) \u0E19\u0E30\u0E04\u0E30
+
+\u{1F4B3} **\u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E32\u0E07\u0E42\u0E2D\u0E19\u0E40\u0E07\u0E34\u0E19:**
+\u2022 \u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C: \`${state.settings?.promptpayNumber || "-"}\`
+\u2022 \u0E0A\u0E37\u0E48\u0E2D\u0E1A\u0E31\u0E0D\u0E0A\u0E35: ${state.settings?.promptpayName || "-"}
+
+\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E42\u0E2D\u0E19\u0E41\u0E25\u0E49\u0E27\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E41\u0E19\u0E1A\u0E2A\u0E25\u0E34\u0E1B\u0E43\u0E19\u0E23\u0E30\u0E1A\u0E1A\u0E40\u0E27\u0E47\u0E1A\u0E01\u0E2D\u0E07\u0E17\u0E38\u0E19\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22\u0E19\u0E30\u0E04\u0E30 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E21\u0E32\u0E01\u0E46 \u0E04\u0E48\u0E30 \u{1F64F}\u2728"`;
+    }
+    if (text.includes("\u0E15\u0E25\u0E32\u0E14") || text.includes("\u0E01\u0E33\u0E44\u0E23") || text.includes("\u0E27\u0E31\u0E19\u0E1E\u0E38\u0E18")) {
+      const recentWeeks = marketWeeks.slice(0, 5).map(
+        (w, idx) => `${idx + 1}. **${w.teamName || "\u0E15\u0E25\u0E32\u0E14\u0E19\u0E31\u0E14\u0E27\u0E31\u0E19\u0E1E\u0E38\u0E18"}** (${w.weekDate}) \u2014 \u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A \u0E3F${(w.totalRevenue || 0).toLocaleString()} | \u0E15\u0E49\u0E19\u0E17\u0E38\u0E19 \u0E3F${(w.totalCost || 0).toLocaleString()} | \u0E01\u0E33\u0E44\u0E23\u0E2A\u0E38\u0E17\u0E18\u0E34 **\u0E3F${(w.totalProfit || 0).toLocaleString()}**`
+      ).join("\n");
+      return `\u{1F6CD}\uFE0F **\u0E2A\u0E23\u0E38\u0E1B\u0E1C\u0E25\u0E1B\u0E23\u0E30\u0E01\u0E2D\u0E1A\u0E01\u0E32\u0E23\u0E15\u0E25\u0E32\u0E14\u0E19\u0E31\u0E14\u0E27\u0E31\u0E19\u0E1E\u0E38\u0E18 (${fundName})**
+
+\u2022 \u0E08\u0E33\u0E19\u0E27\u0E19\u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14: **${marketWeeks.length} \u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C**
+\u2022 \u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A\u0E08\u0E32\u0E01\u0E01\u0E32\u0E23\u0E02\u0E32\u0E22\u0E23\u0E27\u0E21: **\u0E3F${totalMarketRevenue.toLocaleString("th-TH", { minimumFractionDigits: 2 })}**
+\u2022 \u0E15\u0E49\u0E19\u0E17\u0E38\u0E19\u0E23\u0E27\u0E21: **\u0E3F${totalMarketCost.toLocaleString("th-TH", { minimumFractionDigits: 2 })}**
+\u2022 \u0E01\u0E33\u0E44\u0E23\u0E2A\u0E38\u0E17\u0E18\u0E34\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2A\u0E34\u0E49\u0E19: **\u0E3F${totalMarketProfit.toLocaleString("th-TH", { minimumFractionDigits: 2 })}**
+
+${recentWeeks ? `\u{1F4CC} **\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14:**
+${recentWeeks}` : ""}`;
+    }
+    if (text.includes("\u0E43\u0E04\u0E23\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E08\u0E48\u0E32\u0E22") || text.includes("\u0E04\u0E49\u0E32\u0E07") || text.includes("\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E07\u0E34\u0E19") || text.includes("\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19") || text.includes("\u0E08\u0E48\u0E32\u0E22\u0E41\u0E25\u0E49\u0E27\u0E01\u0E35\u0E48\u0E04\u0E19")) {
+      const unpaidPreview = unpaidStudents.length > 0 ? unpaidStudents.map((name, i) => `${i + 1}. ${name}`).join("\n") : "\u{1F389} \u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01\u0E17\u0E38\u0E01\u0E04\u0E19\u0E0A\u0E33\u0E23\u0E30\u0E40\u0E07\u0E34\u0E19\u0E04\u0E23\u0E1A\u0E16\u0E49\u0E27\u0E19\u0E41\u0E25\u0E49\u0E27\u0E04\u0E48\u0E30!";
+      return `\u{1F4CB} **\u0E2A\u0E23\u0E38\u0E1B\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E01\u0E32\u0E23\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E23\u0E2D\u0E1A\u0E40\u0E14\u0E37\u0E2D\u0E19${monthName} ${latestYear})**
+
+\u2022 \u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01\u0E43\u0E19\u0E23\u0E2D\u0E1A\u0E1A\u0E34\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14: **${currentMonthBills.length} \u0E04\u0E19** (\u0E04\u0E19\u0E25\u0E30 \u0E3F${monthlyFee})
+\u2022 \u2705 **\u0E0A\u0E33\u0E23\u0E30\u0E41\u0E25\u0E49\u0E27:** ${paidCount} \u0E04\u0E19 (${currentMonthBills.length > 0 ? Math.round(paidCount / currentMonthBills.length * 100) : 0}%)
+\u2022 \u23F3 **\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A\u0E2A\u0E25\u0E34\u0E1B:** ${pendingReviewCount} \u0E04\u0E19${pendingStudents.length > 0 ? ` (${pendingStudents.join(", ")})` : ""}
+\u2022 \u274C **\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E0A\u0E33\u0E23\u0E30 (\u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30):** ${unpaidCount} \u0E04\u0E19
+
+\u{1F4CC} **\u0E23\u0E32\u0E22\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E17\u0E35\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E0A\u0E33\u0E23\u0E30\u0E1B\u0E23\u0E30\u0E08\u0E33\u0E40\u0E14\u0E37\u0E2D\u0E19${monthName} ${latestYear}:**
+${unpaidPreview}`;
+    }
+    if (text.includes("\u0E01\u0E34\u0E08\u0E01\u0E23\u0E23\u0E21") || text.includes("\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23")) {
+      const acts = (state.activities || []).slice(0, 6).map(
+        (a, i) => `${i + 1}. **${a.title}** \u2014 \u0E2A\u0E16\u0E32\u0E19\u0E30: ${a.status} (\u0E07\u0E1A\u0E2D\u0E19\u0E38\u0E21\u0E31\u0E15\u0E34 \u0E3F${(a.budgetApproved || a.budgetEstimated || 0).toLocaleString()})`
+      ).join("\n");
+      return `\u{1F3AF} **\u0E2A\u0E23\u0E38\u0E1B\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23\u0E41\u0E25\u0E30\u0E01\u0E34\u0E08\u0E01\u0E23\u0E23\u0E21\u0E02\u0E2D\u0E07\u0E23\u0E38\u0E48\u0E19**
+
+\u2022 \u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E01\u0E34\u0E08\u0E01\u0E23\u0E23\u0E21\u0E2A\u0E30\u0E2A\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14: **\u0E3F${activityExpense.toLocaleString("th-TH", { minimumFractionDigits: 2 })}**
+\u2022 \u0E08\u0E33\u0E19\u0E27\u0E19\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23\u0E43\u0E19\u0E23\u0E30\u0E1A\u0E1A: **${(state.activities || []).length} \u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23**
+
+${acts || "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E42\u0E04\u0E23\u0E07\u0E01\u0E32\u0E23\u0E43\u0E19\u0E02\u0E13\u0E30\u0E19\u0E35\u0E49\u0E04\u0E48\u0E30"}`;
+    }
+    return `\u{1F4B0} **\u0E2A\u0E23\u0E38\u0E1B\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E01\u0E32\u0E23\u0E40\u0E07\u0E34\u0E19\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19 (${fundName})**
+
+\u2022 **\u0E22\u0E2D\u0E14\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E2A\u0E38\u0E17\u0E18\u0E34\u0E43\u0E19\u0E1A\u0E31\u0E0D\u0E0A\u0E35:** **\u0E3F${currentFundBalance.toLocaleString("th-TH", { minimumFractionDigits: 2 })}**
+\u2022 **\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A\u0E2A\u0E30\u0E2A\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14:** \u0E3F${totalIncome.toLocaleString("th-TH", { minimumFractionDigits: 2 })} (\u0E04\u0E48\u0E32\u0E1A\u0E33\u0E23\u0E38\u0E07\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19 \u0E3F${feeIncome.toLocaleString()} | \u0E01\u0E33\u0E44\u0E23\u0E15\u0E25\u0E32\u0E14\u0E1E\u0E38\u0E18 \u0E3F${totalMarketProfit.toLocaleString()})
+\u2022 **\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E2A\u0E30\u0E2A\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14:** \u0E3F${totalExpense.toLocaleString("th-TH", { minimumFractionDigits: 2 })} (\u0E07\u0E1A\u0E01\u0E34\u0E08\u0E01\u0E23\u0E23\u0E21 \u0E3F${activityExpense.toLocaleString()})
+
+\u{1F4CA} **\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E2D\u0E1A\u0E1A\u0E34\u0E25\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 (\u0E40\u0E14\u0E37\u0E2D\u0E19${monthName} ${latestYear}):**
+\u2022 \u0E08\u0E48\u0E32\u0E22\u0E41\u0E25\u0E49\u0E27 **${paidCount}** \u0E04\u0E19 | \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08\u0E2A\u0E25\u0E34\u0E1B **${pendingReviewCount}** \u0E04\u0E19 | \u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30 **${unpaidCount}** \u0E04\u0E19 (\u0E08\u0E32\u0E01 ${currentMonthBills.length} \u0E04\u0E19)
+
+\u0E2B\u0E32\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E14\u0E39\u0E23\u0E32\u0E22\u0E0A\u0E37\u0E48\u0E2D\u0E1C\u0E39\u0E49\u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30 \u0E2A\u0E23\u0E38\u0E1B\u0E01\u0E33\u0E44\u0E23\u0E15\u0E25\u0E32\u0E14\u0E27\u0E31\u0E19\u0E1E\u0E38\u0E18 \u0E2B\u0E23\u0E37\u0E2D\u0E23\u0E48\u0E32\u0E07\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E17\u0E27\u0E07\u0E40\u0E07\u0E34\u0E19 \u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E01\u0E14\u0E1B\u0E38\u0E48\u0E21\u0E04\u0E33\u0E16\u0E32\u0E21\u0E14\u0E48\u0E27\u0E19\u0E14\u0E49\u0E32\u0E19\u0E25\u0E48\u0E32\u0E07\u0E2B\u0E23\u0E37\u0E2D\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E16\u0E32\u0E21\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22\u0E19\u0E30\u0E04\u0E30 \u2728`;
+  };
+  const apiKey = ENV.GEMINI_API_KEY;
+  if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey.trim() === "") {
+    return res.json({ reply: buildSmartLocalReply(String(prompt)) });
+  }
+  try {
+    const systemInstruction = `\u0E04\u0E38\u0E13\u0E04\u0E37\u0E2D "\u0E1C\u0E39\u0E49\u0E0A\u0E48\u0E27\u0E22\u0E40\u0E2B\u0E23\u0E31\u0E0D\u0E0D\u0E34\u0E01 AI" \u0E1B\u0E23\u0E30\u0E08\u0E33 "${fundName}"
 \u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19:
 - \u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01: ${activeStudentsCount} \u0E04\u0E19
-- \u0E22\u0E2D\u0E14\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D: ${currentFundBalance.toLocaleString()} \u0E1A\u0E32\u0E17 (\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A: ${totalIncome.toLocaleString()} / \u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22: ${totalExpense.toLocaleString()})
-- \u0E04\u0E48\u0E32\u0E1A\u0E33\u0E23\u0E38\u0E07: ${state.settings?.monthlyFee || 150} \u0E1A\u0E32\u0E17/\u0E04\u0E19
-- \u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E37\u0E2D\u0E19 ${currentMonth}/${currentYear}: \u0E08\u0E48\u0E32\u0E22\u0E41\u0E25\u0E49\u0E27 ${paidCount} \u0E04\u0E19, \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 ${pendingReviewCount} \u0E04\u0E19, \u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30 ${unpaidCount} \u0E04\u0E19
-- \u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30: [${unpaidStudentsList || "\u0E44\u0E21\u0E48\u0E21\u0E35"}]
-\u0E15\u0E2D\u0E1A\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \u0E2A\u0E38\u0E20\u0E32\u0E1E \u0E0A\u0E32\u0E0D\u0E09\u0E25\u0E32\u0E14`;
-  const apiKey = ENV.GEMINI_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: "GEMINI_API_KEY is not defined" });
-  const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
-  const contents = [];
-  if (history && Array.isArray(history)) {
-    history.forEach((msg) => contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text }] }));
+- \u0E22\u0E2D\u0E14\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E2A\u0E38\u0E17\u0E18\u0E34\u0E43\u0E19\u0E1A\u0E31\u0E0D\u0E0A\u0E35\u0E08\u0E23\u0E34\u0E07: ${currentFundBalance.toLocaleString()} \u0E1A\u0E32\u0E17 (\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A\u0E2A\u0E30\u0E2A\u0E21: ${totalIncome.toLocaleString()} / \u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E2A\u0E30\u0E2A\u0E21: ${totalExpense.toLocaleString()})
+- \u0E04\u0E48\u0E32\u0E1A\u0E33\u0E23\u0E38\u0E07: ${monthlyFee} \u0E1A\u0E32\u0E17/\u0E04\u0E19
+- \u0E2A\u0E16\u0E32\u0E19\u0E30\u0E23\u0E2D\u0E1A\u0E1A\u0E34\u0E25\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 \u0E40\u0E14\u0E37\u0E2D\u0E19${monthName} ${latestYear}: \u0E08\u0E48\u0E32\u0E22\u0E41\u0E25\u0E49\u0E27 ${paidCount} \u0E04\u0E19, \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 ${pendingReviewCount} \u0E04\u0E19, \u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30 ${unpaidCount} \u0E04\u0E19
+- \u0E23\u0E32\u0E22\u0E0A\u0E37\u0E48\u0E2D\u0E04\u0E49\u0E32\u0E07\u0E0A\u0E33\u0E23\u0E30: [${unpaidStudents.join(", ") || "\u0E44\u0E21\u0E48\u0E21\u0E35"}]
+- \u0E01\u0E33\u0E44\u0E23\u0E15\u0E25\u0E32\u0E14\u0E19\u0E31\u0E14\u0E27\u0E31\u0E19\u0E1E\u0E38\u0E18\u0E23\u0E27\u0E21: ${totalMarketProfit.toLocaleString()} \u0E1A\u0E32\u0E17
+\u0E15\u0E2D\u0E1A\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \u0E2A\u0E38\u0E20\u0E32\u0E1E \u0E0A\u0E31\u0E14\u0E40\u0E08\u0E19 \u0E41\u0E25\u0E30\u0E08\u0E31\u0E14\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E43\u0E2B\u0E49\u0E2D\u0E48\u0E32\u0E19\u0E07\u0E48\u0E32\u0E22`;
+    const ai = new GoogleGenAI({ apiKey, httpOptions: { headers: { "User-Agent": "aistudio-build" } } });
+    const contents = [];
+    if (history && Array.isArray(history)) {
+      history.forEach((msg) => contents.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.text }] }));
+    }
+    contents.push({ role: "user", parts: [{ text: prompt }] });
+    const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents, config: { systemInstruction, temperature: 0.7 } });
+    return res.json({ reply: response.text || buildSmartLocalReply(String(prompt)) });
+  } catch (err) {
+    console.warn("[Gemini Chat] Falling back to built-in financial assistant:", err);
+    return res.json({ reply: buildSmartLocalReply(String(prompt)) });
   }
-  contents.push({ role: "user", parts: [{ text: prompt }] });
-  const response = await ai.models.generateContent({ model: "gemini-2.5-flash", contents, config: { systemInstruction, temperature: 0.7 } });
-  res.json({ reply: response.text || "\u0E02\u0E2D\u0E2D\u0E20\u0E31\u0E22 \u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E44\u0E14\u0E49" });
 }));
 router8.get("/images/:id", asyncHandler(async (req, res) => {
   const { id } = req.params;
