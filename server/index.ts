@@ -11,7 +11,6 @@
 
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 
 // Config (must be first - validates env and initializes Supabase)
 import { validateEnv, ENV } from "./config/env";
@@ -141,6 +140,16 @@ applyCacheControl(app);
 
 // 4. Image extraction middleware
 applyImageExtractor(app);
+
+// 4.5 Guard if Supabase environment variables are not configured on Vercel yet
+app.use("/api", (req, res, next) => {
+  if (!ENV.SUPABASE_URL || !ENV.SUPABASE_SERVICE_KEY) {
+    return res.status(500).json({
+      error: "ยังไม่ได้ตั้งค่า SUPABASE_URL และ SUPABASE_SERVICE_KEY ในหน้า Settings -> Environment Variables ของ Vercel ค่ะ",
+    });
+  }
+  next();
+});
 
 // 5. Mount all API routes under /api
 app.use("/api", authRoutes);
